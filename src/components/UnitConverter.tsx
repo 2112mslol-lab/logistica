@@ -6,22 +6,25 @@ const UnitConverter: React.FC = () => {
   const [fromUnit, setFromUnit] = useState<string>('m');
   const [toUnit, setToUnit] = useState<string>('cm');
 
-  const conversions: Record<string, number> = {
-    mm: 1,
-    cm: 10,
-    m: 1000,
-    km: 1000000,
-    inch: 25.4,
-    ft: 304.8,
+  const conversions: Record<string, { factor: number; label: string }> = {
+    mm: { factor: 1, label: 'Milímetros (mm)' },
+    cm: { factor: 10, label: 'Centímetros (cm)' },
+    dm: { factor: 100, label: 'Decímetros (dm)' },
+    m: { factor: 1000, label: 'Metros (m)' },
+    dam: { factor: 10000, label: 'Decâmetros (dam)' },
+    hm: { factor: 100000, label: 'Hectômetros (hm)' },
+    km: { factor: 1000000, label: 'Quilômetros (km)' },
+    inch: { factor: 25.4, label: 'Polegadas (in)' },
+    ft: { factor: 304.8, label: 'Pés (ft)' },
   };
 
   const units = Object.keys(conversions);
 
   const convert = () => {
     const numValue = parseFloat(value) || 0;
-    const valueInMm = numValue * conversions[fromUnit];
-    const result = valueInMm / conversions[toUnit];
-    return result.toLocaleString('pt-BR', { maximumFractionDigits: 4 });
+    const valueInMm = numValue * conversions[fromUnit].factor;
+    const result = valueInMm / conversions[toUnit].factor;
+    return result.toLocaleString('pt-BR', { maximumFractionDigits: 6 });
   };
 
   const swapUnits = () => {
@@ -59,7 +62,7 @@ const UnitConverter: React.FC = () => {
               className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
             >
               {units.map((u) => (
-                <option key={u} value={u}>{u}</option>
+                <option key={u} value={u}>{conversions[u].label}</option>
               ))}
             </select>
           </div>
@@ -79,7 +82,7 @@ const UnitConverter: React.FC = () => {
               className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
             >
               {units.map((u) => (
-                <option key={u} value={u}>{u}</option>
+                <option key={u} value={u}>{conversions[u].label}</option>
               ))}
             </select>
           </div>
