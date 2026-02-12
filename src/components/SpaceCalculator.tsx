@@ -1,28 +1,67 @@
 import React, { useState } from 'react';
-import { Box, Maximize, AlertCircle } from 'lucide-react';
+import { Box, Maximize, AlertCircle, ChevronDown } from 'lucide-react';
 
 const SpaceCalculator: React.FC = () => {
-  const [space, setSpace] = useState({ length: 1200, width: 800, height: 1000 }); // cm
-  const [item, setItem] = useState({ length: 40, width: 30, height: 20 }); // cm
+  const [space, setSpace] = useState({ length: 12, width: 8, height: 10 });
+  const [item, setItem] = useState({ length: 40, width: 30, height: 20 });
+  const [spaceUnit, setSpaceUnit] = useState<string>('m');
+  const [itemUnit, setItemUnit] = useState<string>('cm');
+
+  const conversions: Record<string, number> = {
+    mm: 1,
+    cm: 10,
+    dm: 100,
+    m: 1000,
+    km: 1000000,
+    inch: 25.4,
+    ft: 304.8,
+  };
 
   const calculateFitting = () => {
-    // Basic calculation: floor(S_l / I_l) * floor(S_w / I_w) * floor(S_h / I_h)
-    // This doesn't account for orientation optimization but is a solid start for students
-    const fitL = Math.floor(space.length / item.length);
-    const fitW = Math.floor(space.width / item.width);
-    const fitH = Math.floor(space.height / item.height);
+    // Convert all to mm for precision
+    const sFactor = conversions[spaceUnit];
+    const iFactor = conversions[itemUnit];
+
+    const sL = space.length * sFactor;
+    const sW = space.width * sFactor;
+    const sH = space.height * sFactor;
+
+    const iL = item.length * iFactor;
+    const iW = item.width * iFactor;
+    const iH = item.height * iFactor;
+
+    if (iL <= 0 || iW <= 0 || iH <= 0) return { total: 0, efficiency: 0, fitL: 0, fitW: 0, fitH: 0 };
+
+    const fitL = Math.floor(sL / iL);
+    const fitW = Math.floor(sW / iW);
+    const fitH = Math.floor(sH / iH);
     
     const total = fitL * fitW * fitH;
     
     // Efficiency calculation
-    const spaceVolume = space.length * space.width * space.height;
-    const itemsVolume = total * (item.length * item.width * item.height);
+    const spaceVolume = sL * sW * sH;
+    const itemsVolume = total * (iL * iW * iH);
     const efficiency = spaceVolume > 0 ? (itemsVolume / spaceVolume) * 100 : 0;
 
     return { total, efficiency, fitL, fitW, fitH };
   };
 
   const { total, efficiency, fitL, fitW, fitH } = calculateFitting();
+
+  const UnitSelector = ({ value, onChange }: { value: string, onChange: (v: string) => void }) => (
+    <div className="relative inline-block">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="appearance-none bg-white border border-gray-200 rounded-lg px-2 py-1 pr-6 text-[10px] font-bold text-gray-600 focus:ring-2 focus:ring-orange-500 outline-none cursor-pointer"
+      >
+        {Object.keys(conversions).map(u => (
+          <option key={u} value={u}>{u}</option>
+        ))}
+      </select>
+      <ChevronDown className="w-3 h-3 text-gray-400 absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+    </div>
+  );
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 card-hover">
@@ -36,7 +75,10 @@ const SpaceCalculator: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-6">
           <div className="space-y-3">
-            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Espaço Total (cm)</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Espaço Total</h3>
+              <UnitSelector value={spaceUnit} onChange={setSpaceUnit} />
+            </div>
             <div className="grid grid-cols-3 gap-2">
               {['length', 'width', 'height'].map((dim) => (
                 <div key={dim}>
@@ -54,7 +96,10 @@ const SpaceCalculator: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Dimensões do Item (cm)</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Dimensões do Item</h3>
+              <UnitSelector value={itemUnit} onChange={setItemUnit} />
+            </div>
             <div className="grid grid-cols-3 gap-2">
               {['length', 'width', 'height'].map((dim) => (
                 <div key={dim}>
@@ -97,7 +142,7 @@ const SpaceCalculator: React.FC = () => {
             <AlertCircle className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
             <p className="text-[11px] text-gray-500 italic">
               Disposição: {fitL}x{fitW}x{fitH} (Comprimento x Largura x Altura). 
-              Cálculo simplificado sem considerar otimização de rotação.
+              Cálculo compatível com diferentes unidades de entrada.
             </p>
           </div>
         </div>
