@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, Timer, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Clock, Timer } from 'lucide-react';
 
 const LeadTimeCalculator: React.FC = () => {
   const [processing, setProcessing] = useState<string>('1');
